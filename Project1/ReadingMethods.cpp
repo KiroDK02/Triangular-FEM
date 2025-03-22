@@ -110,7 +110,6 @@ void readMesh(FEM &fem)
       findBaseNodes(elements[i], vertexCoord);
       calcDetD(vertexCoord, elements[i]);
       calcAlpha(vertexCoord, elements[i]);
-//      calcSigmaWeights(vertexCoord, elements[i]);
    }
 
    element.close();

@@ -1,24 +1,3 @@
-﻿C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(531,5): warning MSB8028: промежуточный каталог (x64\Debug\) содержит файлы, которые используются совместно с другим проектом (Project1.vcxproj).  Это может привести к ошибкам очистки и перестроения.
-  funcsForGlobalMatrix.cpp
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(55,42): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(55,20): warning C4267: инициализация: преобразование из "size_t" в "const int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(56,31): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(56,20): warning C4267: инициализация: преобразование из "size_t" в "const int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(57,31): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(57,20): warning C4267: инициализация: преобразование из "size_t" в "const int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(100,41): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(100,23): warning C4267: инициализация: преобразование из "size_t" в "const int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(152,52): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(152,30): warning C4267: инициализация: преобразование из "size_t" в "const int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(258,41): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(258,23): warning C4267: инициализация: преобразование из "size_t" в "const int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(274,25): warning C4267: =: преобразование из "size_t" в "_Ty"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(274,25): warning C4267:         with
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(274,25): warning C4267:         [
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(274,25): warning C4267:             _Ty=int
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(274,25): warning C4267:         ]
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(297,37): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(297,24): warning C4267: инициализация: преобразование из "size_t" в "const int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(393,47): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\Дмитрий\source\repos\Project1\Project1\funcsForGlobalMatrix.cpp(393,25): warning C4267: инициализация: преобразование из "size_t" в "const int"; возможна потеря данных
-  Project1.vcxproj -> C:\Users\Дмитрий\source\repos\Project1\x64\Debug\MeshTriangles.exe
+﻿C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(534,5): warning MSB8028: промежуточный каталог (x64\Debug\) содержит файлы, которые используются совместно с другим проектом (Project1.vcxproj).  Это может привести к ошибкам очистки и перестроения.
+  mainProg.cpp
+  Project1.vcxproj -> C:\Учёба\МКЭ\КП Вики\Triangular-FEM\x64\Debug\MeshTriangles.exe

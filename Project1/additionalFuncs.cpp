@@ -46,6 +46,31 @@ double uNumerical(FEM &fem, double x, double y, vector<double> &q)
    return uNum;
 }
 
+double uNumericalAnyTime(FEM &fem, TimeMesh &time, double x, double y, double tValue)
+{
+   auto &timeSplitting = time.tSplitting;
+   auto &q = time.q;
+
+   int ti = 0;
+
+   for (int i = 0; i < timeSplitting.size(); i++)
+      if (tValue <= timeSplitting[i])
+      {
+         ti = i;
+         break;
+      }
+
+   auto &qti_2 = q[ti - 2];
+   auto &qti_1 = q[ti - 1];
+   auto &qti = q[ti];
+
+   double uValue = uNumerical(fem, x, y, qti_2) * time.etta2(ti, tValue) +
+                   uNumerical(fem, x, y, qti_1) * time.etta1(ti, tValue) +
+                   uNumerical(fem, x, y, qti)   * time.etta0(ti, tValue);
+
+   return uValue;
+}
+
 void initSizeLocalMatrix(vector<vector<double>> &matrix)
 {
    matrix.resize(6);
@@ -91,8 +116,8 @@ void findBaseNodes(FiniteElement &elem, vector<Point> &vertexCoord)
          for (int a3 = a2 + 1; a3 < 6; a3++)
          {
             double curS = triangleS(vertexCoord[localVertex[a1]].x, vertexCoord[localVertex[a1]].y,
-               vertexCoord[localVertex[a2]].x, vertexCoord[localVertex[a2]].y,
-               vertexCoord[localVertex[a3]].x, vertexCoord[localVertex[a3]].y);
+                                    vertexCoord[localVertex[a2]].x, vertexCoord[localVertex[a2]].y,
+                                    vertexCoord[localVertex[a3]].x, vertexCoord[localVertex[a3]].y);
 
             if (curS > maxS)
             {
@@ -207,4 +232,31 @@ double FiniteElement::L2(double x, double y)
 double FiniteElement::L3(double x, double y)
 {
    return alpha[6] + alpha[7] * x + alpha[8] * y;
+}
+
+double TimeMesh::etta2(int ti, double t)
+{
+   double deltaT = tSplitting[ti] - tSplitting[ti - 2];
+   double deltaT0 = tSplitting[ti] - tSplitting[ti - 1];
+   double deltaT1 = tSplitting[ti - 1] - tSplitting[ti - 2];
+   
+   return (t - tSplitting[ti - 1]) * (t - tSplitting[ti]) / (deltaT * deltaT1);
+}
+
+double TimeMesh::etta1(int ti, double t)
+{
+   double deltaT = tSplitting[ti] - tSplitting[ti - 2];
+   double deltaT0 = tSplitting[ti] - tSplitting[ti - 1];
+   double deltaT1 = tSplitting[ti - 1] - tSplitting[ti - 2];
+
+   return -(t - tSplitting[ti - 2]) * (t - tSplitting[ti]) / (deltaT1 * deltaT0);
+}
+
+double TimeMesh::etta0(int ti, double t)
+{
+   double deltaT = tSplitting[ti] - tSplitting[ti - 2];
+   double deltaT0 = tSplitting[ti] - tSplitting[ti - 1];
+   double deltaT1 = tSplitting[ti - 1] - tSplitting[ti - 2];
+
+   return (t - tSplitting[ti - 2]) * (t - tSplitting[ti - 1]) / (deltaT * deltaT0);
 }

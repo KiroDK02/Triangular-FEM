@@ -51,6 +51,10 @@ struct TimeMesh
 
    void swapVectors();
    void saveWeightsTi(int ti);
+
+   double etta2(int ti, double t);
+   double etta1(int ti, double t);
+   double etta0(int ti, double t);
 };
 
 // globalNumVertex:
@@ -97,15 +101,18 @@ void readMesh(FEM &fem);
 void readBoundaryCondition(vector<Conditions> &cond);
 
 // Для получения решения по времени
-void getSolution(FEM &fem, TimeMesh &time, SLAE &slae, vector<Conditions> &conds);
+void getSolutionParabolicProblem(FEM &fem, TimeMesh &time, SLAE &slae, vector<Conditions> &conds);
+void getSolutionHyperbolicProblem(FEM &fem, TimeMesh &time, SLAE &slae, vector<Conditions> &conds);
 
 // Для глобальной матрицы
 void portraitSparseMatrix(FEM &fem, SLAE &slae);
-void calcGlobalMatrixAndVector(FEM &fem, TimeMesh &time, SLAE &slae, vector<Conditions> &cond, int ti);
+void calcGlobalMatrixAndVectorParabolicProblem(FEM &fem, TimeMesh &time, SLAE &slae, vector<Conditions> &cond, int ti);
+void calcGlobalMatrixAndVectorHyperbolicProblem(FEM &fem, TimeMesh &time, SLAE &slae, vector<Conditions> &cond, int ti);
 void addCondFirst(SLAE &slae, vector<Conditions> &cond, vector<Point> &coord, double tValue);
 void addCondSecond(SLAE &slae, vector<Conditions> &conds, vector<Point> &coords, double tValue);
 void calcLocalStiffnessMatrix(FiniteElement &elem, vector<vector<double>> &G, double tValue);
-void calcLocalMassMatrix(FiniteElement &elem, vector<vector<double>> &M);
+void calcLocalMassSigmaMatrix(FiniteElement &elem, vector<vector<double>> &M);
+void calcLocalMassChiMatrix(FiniteElement &elem, vector<vector<double>> &M, double tValue);
 void calcLocalb(vector<Point> &coords, FiniteElement &elem, vector<double> &b, double tValue);
 void addLocalMatrixInGlobal(SparseMatrix &A, vector<int> &localVertex, vector<vector<double>> &localMatrix);
 void addElemInGlobalMatrix(SparseMatrix &A, int i, int j, double elem);
@@ -114,6 +121,8 @@ void getWeightsInitU(TimeMesh &time, FEM &fem);
 
 // Рассчет численного значения u в рандомной точки области
 double uNumerical(FEM &fem, double x, double y, vector<double> &q);
+double uNumericalAnyTime(FEM &fem, TimeMesh &time, double x, double y, double tValue);
+double calcErrorNumSolution(FEM &fem, TimeMesh &time, vector<double> &xSet, vector<double> &ySet, vector<double> &timeSet);
 
 // вывод результата в наборе точек
 void outputResult(FEM &fem, TimeMesh &time, vector<double> &xSet, vector<double> &ySet, int ti);

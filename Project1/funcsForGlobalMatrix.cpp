@@ -15,13 +15,13 @@ std::function<double(double, double, double)> uInit
 // Функция правой части
 std::function<double(double, double, double)> F
 {
-   [](double x, double y, double t) { return -4 + 2 * (x + y) * t; }
+   [](double x, double y, double t) { return -4 * t + 2 * (x + y) * t + 2 * t; }
 };
 
 // Лямбда. Только от времени.
 std::function<double(double)> lambda
 {
-   [](double t) { return 1; }
+   [](double t) { return t; }
 };
 
 // гамма из прошлого курсача превратилась в сигму
@@ -30,6 +30,12 @@ std::function<double(double)> lambda
 std::function<double(double, double, double)> sigma
 {
    [](double x, double y, double t) { return x + y; }
+};
+
+// Хи. Тоже только от времени.
+std::function<double(double)> chi
+{
+   [](double t) { return t; }
 };
 
 // Функции первых краевых
@@ -44,7 +50,7 @@ vector<std::function<double(double, double, double)>> ug
 // Функции вторых краевых
 vector<std::function<double(double, double, double)>> tetta
 {
-   [](double x, double y, double t) { return -2; }, // 1
+   [](double x, double y, double t) { return -2 * t; }, // 1
    [](double x, double y, double t) { return x * x + 4; }, // 2
    [](double x, double y, double t) { return 4 + y * y; }, // 3
    [](double x, double y, double t) { return x * x; } // 4
@@ -84,7 +90,28 @@ void outputResult(FEM &fem, TimeMesh &time, vector<double> &xSet, vector<double>
    fclose(result);
 }
 
-void calcGlobalMatrixAndVector(FEM &fem, TimeMesh &time, SLAE &slae, vector<Conditions> &cond, int ti)
+double calcErrorNumSolution(FEM &fem, TimeMesh &time, vector<double> &xSet, vector<double> &ySet, vector<double> &timeSet)
+{
+   const int tSetSize = timeSet.size();
+   const int xSize = xSet.size();
+   const int ySize = ySet.size();
+
+   double error = 0;
+
+   for (int ti = 0; ti < tSetSize; ti++)
+      for (int s = 0; s < ySize; s++)
+         for (int p = 0; p < xSize; p++)
+         {
+            double uNum = uNumericalAnyTime(fem, time, xSet[p], ySet[s], timeSet[ti]);
+            double uReal = uInit(xSet[p], ySet[s], timeSet[ti]);
+
+            error += (uNum - uReal) * (uNum - uReal); 
+         }
+
+   return sqrt(error);
+}
+
+void calcGlobalMatrixAndVectorParabolicProblem(FEM &fem, TimeMesh &time, SLAE &slae, vector<Conditions> &cond, int ti)
 {
    auto &elements = fem.elements;
    auto &vertexCoord = fem.vertexCoord;
@@ -116,7 +143,7 @@ void calcGlobalMatrixAndVector(FEM &fem, TimeMesh &time, SLAE &slae, vector<Cond
       calcSigmaWeights(fem.vertexCoord, elem, tValue);
 
       calcLocalStiffnessMatrix(elem, stiffness, tValue);
-      calcLocalMassMatrix(elem, mass);
+      calcLocalMassSigmaMatrix(elem, mass);
       calcLocalb(vertexCoord, elem, bLocal, tValue);
 
       addLocalMatrixInGlobal(A, elem.localVertex, stiffness);
@@ -131,6 +158,74 @@ void calcGlobalMatrixAndVector(FEM &fem, TimeMesh &time, SLAE &slae, vector<Cond
 
       multiplyMatrixToVector(mass, time.qti_1, tempVector, elem.localVertex);
       multiplyVectorCoef(tempVector, deltaT / (deltaT1 * deltaT0));
+      addLocalVectorInGlobal(b, elem.localVertex, tempVector);
+   }
+
+   addCondSecond(slae, cond, vertexCoord, tValue);
+   addCondFirst(slae, cond, vertexCoord, tValue);
+}
+
+void calcGlobalMatrixAndVectorHyperbolicProblem(FEM &fem, TimeMesh &time, SLAE &slae, vector<Conditions> &cond, int ti)
+{
+   auto &elements = fem.elements;
+   auto &vertexCoord = fem.vertexCoord;
+
+   auto &A = slae.A;
+   auto &b = slae.b;
+
+   double tValue = time.tSplitting[ti];
+   double deltaT = time.tSplitting[ti] - time.tSplitting[ti - 2];
+   double deltaT0 = time.tSplitting[ti] - time.tSplitting[ti - 1];
+   double deltaT1 = time.tSplitting[ti - 1] - time.tSplitting[ti - 2];
+
+   const int sizeSlae = vertexCoord.size();
+
+   vector<vector<double>> stiffness { };
+   vector<vector<double>> massSigma { };
+   vector<vector<double>> massChi { };
+   vector<vector<double>> tempMatrix { };
+   vector<double> bLocal { };
+   vector<double> tempVector { };
+
+   initSizeLocalMatrix(tempMatrix);
+   initSizeLocalMatrix(stiffness);
+   initSizeLocalMatrix(massSigma);
+   initSizeLocalMatrix(massChi);
+   bLocal.resize(6);
+   tempVector.resize(6);
+
+   for (auto &elem : fem.elements)
+   {
+      calcSigmaWeights(fem.vertexCoord, elem, tValue);
+
+      calcLocalStiffnessMatrix(elem, stiffness, tValue);
+      calcLocalMassSigmaMatrix(elem, massSigma);
+      calcLocalMassChiMatrix(elem, massChi, tValue);
+      calcLocalb(vertexCoord, elem, bLocal, tValue);
+
+      addLocalMatrixInGlobal(A, elem.localVertex, stiffness);
+      addLocalVectorInGlobal(b, elem.localVertex, bLocal);
+
+      multiplyMatrixToCoef(massSigma, (deltaT + deltaT0) / (deltaT * deltaT0), tempMatrix);
+      addLocalMatrixInGlobal(A, elem.localVertex, tempMatrix);
+
+      multiplyMatrixToCoef(massChi, 2.0 / (deltaT * deltaT0), tempMatrix);
+      addLocalMatrixInGlobal(A, elem.localVertex, tempMatrix);
+
+      multiplyMatrixToVector(massSigma, time.qti_2, tempVector, elem.localVertex);
+      multiplyVectorCoef(tempVector, -deltaT0 / (deltaT * deltaT1));
+      addLocalVectorInGlobal(b, elem.localVertex, tempVector);
+
+      multiplyMatrixToVector(massSigma, time.qti_1, tempVector, elem.localVertex);
+      multiplyVectorCoef(tempVector, deltaT / (deltaT1 * deltaT0));
+      addLocalVectorInGlobal(b, elem.localVertex, tempVector);
+
+      multiplyMatrixToVector(massChi, time.qti_2, tempVector, elem.localVertex);
+      multiplyVectorCoef(tempVector, -2.0 / (deltaT * deltaT1));
+      addLocalVectorInGlobal(b, elem.localVertex, tempVector);
+
+      multiplyMatrixToVector(massChi, time.qti_1, tempVector, elem.localVertex);
+      multiplyVectorCoef(tempVector, 2.0 / (deltaT1 * deltaT0));
       addLocalVectorInGlobal(b, elem.localVertex, tempVector);
    }
 
@@ -356,7 +451,7 @@ void calcLocalStiffnessMatrix(FiniteElement &elem, vector<vector<double>> &G, do
             a6 * G6[i][j]);
 }
 
-void calcLocalMassMatrix(FiniteElement &elem, vector<vector<double>> &M)
+void calcLocalMassSigmaMatrix(FiniteElement &elem, vector<vector<double>> &M)
 {
    auto &localVertex = elem.localVertex;
    auto &sigmaWeights = elem.sigmaWeights;
@@ -367,6 +462,16 @@ void calcLocalMassMatrix(FiniteElement &elem, vector<vector<double>> &M)
                   (sigmaWeights[0] * M1[i][j] +
                    sigmaWeights[1] * M2[i][j] +
                    sigmaWeights[2] * M3[i][j]);
+}
+
+void calcLocalMassChiMatrix(FiniteElement &elem, vector<vector<double>> &M, double tValue)
+{
+   auto &localVertex = elem.localVertex;
+   auto &sigmaWeights = elem.sigmaWeights;
+
+   for (int i = 0; i < 6; i++)
+      for (int j = 0; j < 6; j++)
+         M[i][j] = chi(tValue) * abs(elem.detD) * Mass[i][j];
 }
 
 void calcLocalb(vector<Point> &coords, FiniteElement &elem, vector<double> &b, double tValue)
